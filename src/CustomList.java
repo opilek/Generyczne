@@ -1,16 +1,15 @@
-import java.util.AbstractList;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 // Definicja klasy generycznej CustomList, gdzie T to typ przechowywanych danych
 public class CustomList<T> extends AbstractList<T>
 {
     // Wewnętrzna klasa Node reprezentująca pojedynczy element listy (Node-węzeł/można interpretować jako pojedynczy element)
-    private class Node
+    private class Node<T>
     {
       T value;    // Przechowuje wartość danego elementu
-      Node next;  // Wskaźnik na następny element w liście
+      Node<T> next;  // Wskaźnik na następny element w liście
 
         // Konstruktor przyjmujący wartość elementu
         public Node(T value)
@@ -20,15 +19,23 @@ public class CustomList<T> extends AbstractList<T>
         }
     }
 
-    private Node head;  // Referencja do pierwszego elementu listy (początek)
-    private Node tail;  // Referencja do ostatniego elementu listy (koniec)
+    private Node<T> head;  // Referencja do pierwszego elementu listy (początek)
+    private Node<T> tail;  // Referencja do ostatniego elementu listy (koniec)
     private int size=0;   // Licznik elementów w liście(rozmiar)
+
+    //Konstruktor
+    public CustomList()
+    {
+        this.head=null;
+        this.tail=null;
+        this.size=0;
+    }
 
     // Metoda dodająca element na koniec listy
     public void addLast(T value)
     {
         // Tworzymy nowy węzeł z podaną wartością
-        Node newNode=new Node(value);
+        Node<T> newNode=new Node<>(value);
 
         if(tail==null)
         {
@@ -60,7 +67,7 @@ public class CustomList<T> extends AbstractList<T>
     // Metoda dodająca element na początek listy
     public void addFirst(T value)
     {
-        Node newNode=new Node(value);
+        Node<T> newNode=new Node<>(value);
 
         if(head==null)
         {
@@ -102,7 +109,7 @@ public class CustomList<T> extends AbstractList<T>
         }
 
 
-        T value = head.value; // Zapisujemy wartość pierwszego elementu do zmiennej value
+        T resultValue = head.value; // Zapisujemy wartość pierwszego elementu do zmiennej value
 
         // Sprawdzamy, czy lista zawiera tylko jeden element
         if (head == tail)
@@ -119,7 +126,7 @@ public class CustomList<T> extends AbstractList<T>
         size--;  // Zmniejszamy rozmiar listy
 
         // Zwracamy wartość usuniętego elementu
-        return value;
+        return resultValue;
     }
 
     // Metoda usuwająca ostatni element z listy i zwracająca jego wartość
@@ -134,7 +141,7 @@ public class CustomList<T> extends AbstractList<T>
         }
 
         // Zapisujemy wartość ostatniego elementu do zmiennej, żeby ją potem zwrócić
-        T value = tail.value;
+        T resultValue = tail.value;
 
         // Sprawdzamy, czy lista zawiera tylko jeden element
         if (head == tail)
@@ -144,7 +151,7 @@ public class CustomList<T> extends AbstractList<T>
         } else
         {
             // Potrzebujemy znaleźć przedostatni element w liście
-            Node current = head; // Zaczynamy od początku listy
+            Node<T> current = head; // Zaczynamy od początku listy
 
             // Szukamy elementu, który wskazuje na tail (czyli przedostatniego)
             while (current.next != tail)
@@ -161,7 +168,32 @@ public class CustomList<T> extends AbstractList<T>
         size--;  // Zmniejszamy rozmiar listy
 
         // Zwracamy wartość usuniętego elementu
-        return value;
+        return resultValue;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        StringBuilder result = new StringBuilder("Lista\n[");
+
+        Node<T> current = head;
+
+        while (current != null)
+        {
+            result.append(current.value);
+
+            if (current.next != null)
+            {
+                result.append(", ");
+            }
+
+            current = current.next;
+        }
+
+        result.append("]");
+
+        return result.toString();
     }
 
     @Override
@@ -189,7 +221,7 @@ public class CustomList<T> extends AbstractList<T>
         }
 
         // 2. Zaczynamy od początku listy
-        Node current = head;
+        Node<T> current = head;
 
         // 3. Przechodzimy index razy do przodu
         for (int i = 0; i < index; i++)
@@ -209,7 +241,7 @@ public class CustomList<T> extends AbstractList<T>
         return new Iterator<T>()
         {
             // Prywatna zmienna wskazująca na aktualny element listy podczas iteracji
-            private Node current=head;
+            private Node<T> current=head;
 
             @Override
             // Sprawdzamy, czy istnieje kolejny element
@@ -244,6 +276,38 @@ public class CustomList<T> extends AbstractList<T>
     public Stream<T> stream()
     {
 
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator(), 0), false);
+    }
+
+
+    // Metoda sprawdza, czy dana wartość znajduje się w otwartym przedziale (min, max)
+    public static <T extends Comparable<T>> boolean isInOpenRange(T value, T min, T max)
+    {
+        // Porównujemy wartość z dolną granicą: czy jest większa niż min
+        // oraz z górną granicą: czy jest mniejsza niż max
+        return value.compareTo(min) > 0 && value.compareTo(max) < 0;
+    }
+
+    // Metoda liczy, ile elementów z listy znajduje się w otwartym przedziale (min, max)
+    public static <T extends Comparable<T>> int countInOpenRange(List<T> list, T min, T max)
+    {
+
+        // Inicjalizujemy licznik pasujących elementów
+        int count = 0;
+
+        // Iterujemy po wszystkich elementach listy
+        for (T value : list)
+        {
+            // Sprawdzamy, czy element znajduje się w przedziale (min, max)
+            if (isInOpenRange(value, min, max))
+            {
+                // Jeśli tak, zwiększamy licznik
+                count++;
+            }
+        }
+
+        // Zwracamy końcową liczbę elementów spełniających warunek
+        return count;
     }
 
 
